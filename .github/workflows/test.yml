@@ -7,11 +7,13 @@ on:
     branches: [ master ]
 
 jobs:
+  env:
+    PATH: /home/runner/.local/bin:$PATH
   test:
     runs-on: ubuntu-latest
 
     steps:
-    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
       - name: Install requirements
