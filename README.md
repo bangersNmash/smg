@@ -5,3 +5,7 @@
 
 # smg
 Клиент-серверная пошаговая игра.
+
+
+### Информация
+[Code Coverage](https://codecov.io/github/bangersNmash/smg/)
