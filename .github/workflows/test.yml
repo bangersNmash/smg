@@ -17,5 +17,5 @@ jobs:
       - name: Install requirements
         run: pip3 install -r requirements.txt
 
-      - name: Test main app
-        run: python3 -m unittest test_main.py
+      - name: Test all
+        run: pytest
