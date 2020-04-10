@@ -1,5 +1,8 @@
 name: CI
 
+env:
+  PATH: /home/runner/.local/bin:$PATH
+
 on:
   push:
     branches: [ master ]
@@ -7,8 +10,6 @@ on:
     branches: [ master ]
 
 jobs:
-  env:
-    PATH: /home/runner/.local/bin:$PATH
   test:
     runs-on: ubuntu-latest
 
