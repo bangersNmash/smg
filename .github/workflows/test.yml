@@ -28,5 +28,6 @@ jobs:
 
       - name: Upload coverage
         uses: codecov/codecov-action@v1
-        file: ./coverage.xml
-        flags: unittests
+        with:
+          file: ./coverage.xml
+          flags: unittests
