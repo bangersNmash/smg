@@ -9,20 +9,24 @@ import properties
 
 def main():
     pygame.init()
-    screen = pygame.display.set_mode((properties.width, properties.height))
+    screen = pygame.display.set_mode((properties.width, properties.height), pygame.RESIZABLE)
+    surface = screen.copy()
     map = grid.Grid(properties.width, properties.height, properties.default_size)
 
     while True:
-        draw(screen, map)
+        draw(surface, map)
+        screen.blit(surface, (0, 0))
+        pygame.display.update()
+
         action = handle_event(pygame.event.wait())
         action(map)
 
 
-def draw(screen, map):
+def draw(screen, world):
     screen.fill((255, 255, 255))
-    for hex in map.hexes():
-        pygame.draw.aalines(screen, (0, 0, 0), True, hex.vertices())
-    pygame.display.update()
+    for hex in world.hexes():
+        pygame.draw.polygon(screen, hex.color, hex.vertices())
+        pygame.draw.aalines(screen, (255, 255, 255), True, hex.vertices())
 
 
 def handle_event(e):
@@ -35,9 +39,14 @@ def handle_event(e):
 
 
 def handle_click(x, y):
-    def f(map):
-        size = map.get_size()
-        print(x, y, grid.pixel_to_hex(x - size, y - size * sqrt(3) / 2, properties.default_size))
+    def f(world):
+        size = world.get_size()
+        hex_pos = grid.pixel_to_hex(x - size, y - size * sqrt(3) / 2, size)
+        print(x, y, hex_pos)
+
+        for hex in world.hexes():
+            hex.color = (0, 0, 0)
+        world.get_hex(*hex_pos).color = (255, 0, 0)
 
     return f
 

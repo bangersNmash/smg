@@ -4,10 +4,11 @@ import properties
 
 
 class Hex:
-    def __init__(self, x, y, size):
+    def __init__(self, x, y, size, color=(0, 0, 0)):
         self.x = x
         self.y = y
         self.size = size
+        self.color = color
 
     def vertices(self):
         h = self.size * sqrt(3)
@@ -31,13 +32,17 @@ class Grid:
         y = i = 0
         while y < height:
             row = []
-            x = (i % 2) * size * 1.5
+            x, j = 0, 0
             while x < width:
-                row.append(Hex(x + hex_width / 2, y + hex_height / 2, size))
-                x += hex_width * 1.5
+                row.append(Hex(x + hex_width / 2, y + (j % 2 + 1) / 2 * hex_height, size))
+                x += size * 1.5
+                j += 1
             self._grid.append(row)
-            y += hex_height / 2
+            y += hex_height
             i += 1
+
+    def get_hex(self, row, col):
+        return self._grid[row][col]
 
     def get_size(self):
         return self._size
@@ -63,7 +68,7 @@ def pixel_to_hex(x, y, size):
     q, r = _axial_pixel_to_hex(x, y, size)
     cx, cy, cz = _axial_to_cube(q, r)
     col, row = _cube_to_normal(cx, cy, cz)
-    return row, col
+    return int(row), int(col)
 
 
 def _cube_to_normal(x, y, z):
