@@ -1,4 +1,4 @@
 pygame==2.0.0.dev6
 pytest==5.4.1
 pytest-cov==2.8.1
-pylint==2.4.4
+pytest-pylint==0.15.1
