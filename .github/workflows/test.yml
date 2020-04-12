@@ -23,6 +23,9 @@ jobs:
           python3 -m pip install --upgrade pip
           python3 -m pip install -v -r requirements.txt
 
+      - name: Run pylint
+        run: pylint **/*.py
+
       - name: Test all
         run: pytest --cov=./ --cov-report=xml
 
