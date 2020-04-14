@@ -29,8 +29,11 @@ class Database:
 
     def get_session(self, conn, uuid):
         cursor = conn.cursor()
-        cursor.execute(sql.get_session, (uuid,))
+        cursor.execute(sql.select_session, (uuid,))
         session = cursor.fetchone()
+        if session == None:
+            return
+
         session['users']   = list(json.loads(session['users']))
         session['payload'] = json.loads(session['payload'])
         return session

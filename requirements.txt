@@ -1,4 +1,6 @@
-pygame==1.9.6
+pygame==2.0.0.dev6
+pytest==5.4.1
+pytest-cov==2.8.1
 Flask==1.1.2
 Flask-HTTPAuth==3.3.0
 Werkzeug==1.0.1

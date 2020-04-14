@@ -11,11 +11,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
-      - name: Install requirements
-        run: pip3 install -r requirements.txt
+      - name: Setup Python
+        uses: actions/setup-python@master
+        with:
+          python-version: 3.7
 
-      - name: Test main app
-        run: python3 -m unittest test_main.py
+      - name: Install requirements
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install -v -r requirements.txt
+
+      - name: Test all
+        run: pytest --cov=./ --cov-report=xml
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v1
+        with:
+          file: ./coverage.xml
+          flags: unittests

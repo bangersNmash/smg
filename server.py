@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import sqlite3
+import properties
 from flask import Flask, jsonify, abort, request, make_response, g
 from flask_httpauth import HTTPBasicAuth
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -25,7 +26,7 @@ def dict_factory(cursor, row):
 def conn_get():
     conn = getattr(g, '_database', None)
     if conn is None:
-        conn = g._database = sqlite3.connect("mydatabase.db")
+        conn = g._database = sqlite3.connect(properties.db_name)
         conn.row_factory = dict_factory
 
     return conn
@@ -147,7 +148,7 @@ def get_session(uuid):
         if 'players' in session['payload']:
             if session['payload']['players'] == len(session['users']):
                 session['state'] = 'Started'
-        elif len(session['users']) == 2:
+        elif len(session['users']) == properties.default_players:
                 session['state'] = 'Started'
 
         database.update_session(conn, session)
