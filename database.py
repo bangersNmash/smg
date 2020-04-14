@@ -1,66 +1,60 @@
 import sqlite3
 import json
+import sql
+import properties
  
  
+"""Database interface"""
 class Database:
-    """Database interface"""
-    data = ""
     def __init__(self):
-        conn = sqlite3.connect("mydatabase.db")
+        conn   = sqlite3.connect(properties.db_name)
         cursor = conn.cursor()
-        cursor.execute("""CREATE TABLE IF NOT EXISTS users(
-                           username VARCHAR PRIMARY KEY,
-                           password VARCHAR NOT NULL)""")
-
-        cursor.execute("""CREATE TABLE IF NOT EXISTS sessions(
-                           uuid VARCHAR PRIMARY KEY,
-                           users VARCHAR NOT NULL,
-                           payload VARCHAR NOT NULL,
-                           state VARCHAR NOT NULL,
-                           ts INT NOT NULL)""")
+        cursor.execute(sql.create_users)
+        cursor.execute(sql.create_sessions)
         conn.commit()
         conn.close()
 
 
     def get_user(self, conn, username):
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM users WHERE username=?", (username,))
+        cursor.execute(sql.select_user, (username,))
         return cursor.fetchone()
 
 
     def add_user(self, conn, user):
         cursor = conn.cursor()
-        cursor.execute("INSERT INTO users VALUES (?, ?)",
-                           (user['username'], user['password']))
+        cursor.execute(sql.insert_user, (user['username'], user['password']))
         conn.commit()
 
 
     def get_session(self, conn, uuid):
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM sessions WHERE uuid=?", (uuid,))
+        cursor.execute(sql.get_session, (uuid,))
         session = cursor.fetchone()
-        session['users'] = list(json.loads(session['users']))
+        session['users']   = list(json.loads(session['users']))
         session['payload'] = json.loads(session['payload'])
         return session
 
 
     def add_session(self, conn, session):
         cursor = conn.cursor()
-        cursor.execute("INSERT INTO sessions VALUES (?,?,?,?,?)",
-                           (session['uuid'],
+        cursor.execute(sql.insert_session, (
+                           session['uuid'],
                            json.dumps(session['users']),
                            json.dumps(session['payload']),
                            session['state'],
-                           session['ts']))
+                           session['ts']
+        ))
         conn.commit()
 
 
     def update_session(self, conn, session):
         cursor = conn.cursor()
-        cursor.execute("UPDATE sessions SET users=?, payload=?, state=?, ts=? WHERE uuid=?",
-                           (json.dumps(session['users']),
+        cursor.execute(sql.update_session, (
+                           json.dumps(session['users']),
                            json.dumps(session['payload']),
                            session['state'],
                            session['ts'],
-                           session['uuid']))
+                           session['uuid']
+        ))
         conn.commit()

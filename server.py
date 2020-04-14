@@ -86,8 +86,8 @@ def authenticate():
 @app.route('/api/v1/auth', methods=['POST'])
 def register():
     if not request.json \
-        or not 'username' in request.json \
-        or not 'password' in request.json:
+        or not 'username' in request.json or len(request.json['username']) == 0 \
+        or not 'password' in request.json or len(request.json['password']) == 0:
             abort(400)
 
     conn = conn_get()
