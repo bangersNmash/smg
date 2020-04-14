@@ -8,4 +8,5 @@
 
 
 ### Информация
+[Список планируемых технических возможностей](docs/technologies.md)
 [Code Coverage](https://codecov.io/github/bangersNmash/smg/)
