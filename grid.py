@@ -1,9 +1,17 @@
+"""
+grid.py -- hexagonal grid
+==========================
+Provides data structures and operations representing grid of hexagons.
+"""
+
 from math import sqrt
 
 import properties
 
 
 class Hex:
+    """Represents a hexagon"""
+
     def __init__(self, x, y, size, color=(0, 0, 0)):
         self.x = x
         self.y = y
@@ -11,6 +19,7 @@ class Hex:
         self.color = color
 
     def vertices(self):
+        """Returns list of hexagon's vertices from left one clockwise"""
         h = self.size * sqrt(3)
         return [
             [self.x - self.size, self.y],  # left
@@ -23,6 +32,7 @@ class Hex:
 
 
 class Grid:
+    """Represents a grid of hexagons"""
     def __init__(self, width, height, size=properties.default_size):
         self._size = size
         self._grid = []
@@ -42,15 +52,19 @@ class Grid:
             i += 1
 
     def get_hex(self, row, col):
+        """Get hexagon at position (row, col)"""
         return self._grid[row][col]
 
     def get_size(self):
+        """Get length of hexagon side"""
         return self._size
 
     def get_grid(self):
+        """Get hexes as bi-dimensional grid"""
         return self._grid
 
     def hexes(self):
+        """Get hexes as list from left to right, from top to bottom"""
         hexes = []
         for row in self._grid:
             for elem in row:
@@ -59,14 +73,14 @@ class Grid:
 
 
 def hex_to_pixel(row, col, size):
-    """Get pixel on surface from row and column of a hex"""
+    """Get pixel on surface from position of a hexagon in a grid"""
     x = size * 3 / 2 * col
     y = size * sqrt(3) * (row + 0.5 * (col & 1))
     return x, y
 
 
 def pixel_to_hex(x, y, size):
-    """Get row and column of a hex in grid from pixel on surface"""
+    """Get position of a hexagon in a grid from pixel on surface"""
     q, r = _axial_pixel_to_hex(x, y, size)
     cx, cy, cz = _axial_to_cube(q, r)
     col, row = _cube_to_normal(cx, cy, cz)

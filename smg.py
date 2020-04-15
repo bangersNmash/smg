@@ -1,3 +1,8 @@
+"""
+smg.py -- the game
+==================
+Core package describing top level game logic.
+"""
 import sys
 from math import sqrt
 
@@ -11,6 +16,7 @@ mouse_down_pos = (0, 0)
 
 
 def main():
+    """Start game cycle"""
     pygame.init()
     screen = pygame.display.set_mode((properties.window_width, properties.window_height),
                                      pygame.RESIZABLE)
@@ -31,6 +37,7 @@ def main():
 
 
 def draw(surface, world):
+    """Draws all game objects on given surface"""
     surface.fill((255, 255, 255))
     for h in world.hexes():
         pygame.draw.polygon(surface, h.color, h.vertices())
@@ -38,6 +45,7 @@ def draw(surface, world):
 
 
 def handle_event(e):
+    """Handles user events according to game logic"""
     if e.type == pygame.MOUSEBUTTONDOWN:
         return handle_mouse_button_down(*e.pos)
 
@@ -51,6 +59,7 @@ def handle_event(e):
 
 
 def handle_mouse_button_down(x, y):
+    """Handles event when user click on point (x, y) according to game logic"""
     def handler(_):
         global mouse_down_pos
         mouse_down_pos = (x, y)
@@ -59,6 +68,7 @@ def handle_mouse_button_down(x, y):
 
 
 def handle_mouse_button_up(x, y):
+    """Handles event when user releases mouse button on point (x, y) according to game logic"""
     def handler(world):
         global camera_pos
         if mouse_down_pos == (x, y):
@@ -78,10 +88,11 @@ def handle_mouse_button_up(x, y):
 
 
 def do_nothing(_):
-    pass
+    """Handles event by doing nothing"""
 
 
 def finish(_):
+    """Handles event by exiting the game"""
     sys.exit(0)
 
 
