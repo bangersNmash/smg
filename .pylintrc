@@ -65,7 +65,6 @@ disable=C0103,
         E1101,
         no-self-use,
         too-few-public-methods,
-        function-redefined,
         global-statement,
         too-many-function-args,
         fixme
