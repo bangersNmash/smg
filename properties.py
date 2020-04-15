@@ -1,3 +1,6 @@
+"""
+properties.py -- external configuration
+"""
 # Window dimensions
 window_width = 800  # px
 window_height = 600  # px
