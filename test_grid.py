@@ -39,7 +39,7 @@ def test_pixel_to_hex():
 
 def test_cube_to_axial():
     x, y, z = -2, 0, 2
-    q, r = _cube_to_axial(x, y, z)
+    q, _ = _cube_to_axial(x, y, z)
     assert q == -2 and z == 2
 
 

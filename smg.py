@@ -6,7 +6,6 @@ import pygame
 import grid
 import properties
 
-# todo: Consider making not global.
 camera_pos = (0, 0)
 mouse_down_pos = (0, 0)
 

@@ -73,7 +73,7 @@ def pixel_to_hex(x, y, size):
     return int(row), int(col)
 
 
-def _cube_to_normal(x, y, z):
+def _cube_to_normal(x, _, z):
     """Translate cubic coordinates to square grid coordinates"""
     col = x
     row = z + (x - (x & 1)) / 2
