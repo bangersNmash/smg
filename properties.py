@@ -11,3 +11,7 @@ grid_height = 10  # hex
 
 # Hex
 default_size = 50  # px
+
+# Server
+db_name = "mydatabase.db"
+default_players = 2
