@@ -15,8 +15,8 @@ from flask import Flask, jsonify, abort, request, make_response, g
 from flask_httpauth import HTTPBasicAuth
 from werkzeug.security import generate_password_hash, check_password_hash
 
-import properties
 import database
+import properties
 
 APP = Flask(__name__)
 AUTH = HTTPBasicAuth()
@@ -172,6 +172,15 @@ def create_session():
     database.add_session(conn, session)
 
     return jsonify(session), 201
+
+
+@APP.route('/api/v1/health_check', methods=['GET'])
+def health_check():
+    """
+    Api.health_check method
+    returns status "ok" or fails
+    """
+    return jsonify({"status": "ok"})
 
 
 @APP.route('/api/v1/session/<string:uuid>', methods=['GET'])

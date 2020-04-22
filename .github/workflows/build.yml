@@ -1,0 +1,23 @@
+name: CI-build
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Build image
+        run: |
+          docker build -t docker.pkg.github.com/bangersnmash/smg/smg_server .
+
+      - name: Publish image
+        run: |
+          echo ${{ secrets.GITHUB_TOKEN }} | docker login docker.pkg.github.com -u alois9866 --password-stdin
+          docker push docker.pkg.github.com/bangersnmash/smg/smg_server
