@@ -1,0 +1,9 @@
+---
+- hosts: staging_nodes
+  tasks:
+    - name: Perform health check
+      uri:
+        url: "http://{{ hostvars[inventory_hostname].ansible_host }}:30080/api/v1/health_check"
+        return_content: yes
+      register: health_check
+      failed_when: health_check.json.status != "ok"

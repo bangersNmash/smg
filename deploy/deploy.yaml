@@ -1,0 +1,41 @@
+---
+- name: Deploy chart to EC staging servers
+  hosts: staging_master
+  tasks:
+    - name: Delete remote chart
+      file:
+        path: smgserver
+        state: absent
+
+    - name: Copy chart
+      copy:
+        src: smgserver
+        dest: .
+
+    - name: Get namespaces
+      shell: kubectl get namespaces -o name
+      register: namespace_list
+
+    - name: Create namespace
+      when: namespace_list.stdout.find("namespace/smg") == -1
+      shell: kubectl create namespace smg
+
+    - name: Check if already running
+      shell: /snap/bin/helm list -q -n smg
+      register: helm_list
+
+    - name: Delete if already running
+      when: helm_list.stdout.find("smgserver") != -1
+      shell: /snap/bin/helm delete smgserver -n smg
+
+    - name: Install with Helm
+      shell: /snap/bin/helm install smgserver ./smgserver --namespace=smg
+
+    - name: Perform health check
+      uri:
+        url: "http://{{ hostvars[inventory_hostname].ansible_host }}:30080/api/v1/health_check"
+        return_content: yes
+      register: health_check
+      failed_when: health_check.json.status != "ok"
+      retries: 6
+      delay: 5
