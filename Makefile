@@ -21,7 +21,6 @@ docker:
 	docker build -t docker.pkg.github.com/bangersnmash/smg/smg_server:local .
 
 docker-ci:
-	@echo docker build -t docker.pkg.github.com/bangersnmash/smg/smg_server:${tag_no_slash} .
 	docker build -t docker.pkg.github.com/bangersnmash/smg/smg_server:${tag_no_slash} .
 
 docker-push:
