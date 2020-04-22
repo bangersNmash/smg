@@ -1,0 +1,19 @@
+---
+- hosts: staging_nodes
+  become: true
+  vars:
+    join_command: "{{ lookup('file', 'join.sh') }}"
+  tasks:
+    - name: Print join command
+      debug:
+        var: join_command
+
+    - name: Join node to cluster
+      shell: "{{ join_command }} > join_result.txt"
+
+    - name: Create local volume folder
+      file:
+        path: /mnt/local-storage
+        state: directory
+        mode: 0755
+        owner: ubuntu
