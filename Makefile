@@ -21,3 +21,5 @@ docker:
 docker-ci:
 	docker build -t docker.pkg.github.com/bangersnmash/smg/smg_server:${GITHUB_REF} .
 
+docker-push:
+	docker push docker.pkg.github.com/bangersnmash/smg/smg_server:${GITHUB_REF}

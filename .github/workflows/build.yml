@@ -15,9 +15,9 @@ jobs:
 
       - name: Build image
         run: |
-          docker build -t docker.pkg.github.com/bangersnmash/smg/smg_server .
+          make docker-ci
 
       - name: Publish image
         run: |
           echo ${{ secrets.GITHUB_TOKEN }} | docker login docker.pkg.github.com -u alois9866 --password-stdin
-          docker push docker.pkg.github.com/bangersnmash/smg/smg_server
+          make docker-push
