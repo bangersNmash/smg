@@ -13,7 +13,7 @@ pylint:
 test: pytest pylint
 
 deps:
-	python3 -m pip -v -r requirements.txt
+	python3 -m pip install -v -r requirements.txt
 
 docker:
 	docker build -t docker.pkg.github.com/bangersnmash/smg/smg_server:local .
