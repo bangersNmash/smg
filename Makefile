@@ -1,4 +1,4 @@
-TAG?=0.0.1
+TAG=${GITHUB_REF}
 
 .PHONY: all test generate build package clean
 
@@ -15,11 +15,14 @@ test: pytest pylint
 deps:
 	python3 -m pip install -v -r requirements.txt
 
+tag_no_slash := $(subst /,-,${TAG})
+
 docker:
 	docker build -t docker.pkg.github.com/bangersnmash/smg/smg_server:local .
 
 docker-ci:
-	docker build -t docker.pkg.github.com/bangersnmash/smg/smg_server:${GITHUB_REF} .
+	@echo docker build -t docker.pkg.github.com/bangersnmash/smg/smg_server:${tag_no_slash} .
+	docker build -t docker.pkg.github.com/bangersnmash/smg/smg_server:${tag_no_slash} .
 
 docker-push:
-	docker push docker.pkg.github.com/bangersnmash/smg/smg_server:${GITHUB_REF}
+	docker push docker.pkg.github.com/bangersnmash/smg/smg_server:${tag_no_slash}
