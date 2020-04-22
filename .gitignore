@@ -5,8 +5,9 @@
 # Local database file
 db/mydatabase.db
 
-# Private key file
+# Private key files
 deploy/smg.pem
+deploy/token.txt
 
 # Kube join script
 deploy/join.sh

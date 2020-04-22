@@ -19,5 +19,5 @@ jobs:
 
       - name: Publish image
         run: |
-          echo ${{ secrets.GITHUB_TOKEN }} | docker login docker.pkg.github.com -u alois9866 --password-stdin
+          echo ${{ secrets.GITHUB_TOKEN }} | docker login docker.pkg.github.com -u ${{ secrets.user }} --password-stdin
           make docker-push
