@@ -1,8 +1,8 @@
 [staging_master]
-master ansible_host=ec2-3-124-4-142.eu-central-1.compute.amazonaws.com
+master ansible_host=ec2-18-194-41-150.eu-central-1.compute.amazonaws.com
 
 [staging_nodes]
-node1 ansible_host=ec2-18-196-31-111.eu-central-1.compute.amazonaws.com
+node1 ansible_host=ec2-18-195-68-25.eu-central-1.compute.amazonaws.com
 
 [staging:children]
 staging_master
