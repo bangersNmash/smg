@@ -6,7 +6,9 @@
 # smg
 Клиент-серверная пошаговая игра.
 
+[Описание проекта.](docs/project_description.md)
 
 ### Информация
-[Список планируемых технических возможностей](docs/technologies.md)
-[Code Coverage](https://codecov.io/github/bangersNmash/smg/)
+[Список планируемых технических возможностей.](docs/technologies.md)
+
+[Code Coverage.](https://codecov.io/github/bangersNmash/smg/)
