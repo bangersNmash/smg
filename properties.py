@@ -16,3 +16,4 @@ default_size = 50  # px
 db_name = "db/mydatabase.db"
 default_players = 2
 round_duration = 1 * 60
+server_url = "http://127.0.0.1:5000/api/v1"

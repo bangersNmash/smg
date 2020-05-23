@@ -159,7 +159,7 @@ def create_session():
     """
     Api.create_session method
     arguments: [payload]
-    returns: [uuid, users, payload, state, ts]
+    returns: [uuid, users, players, payload, state, round, ts]
     201 -- session created
     400 -- wrong arguments
     403 -- wrong authorization
@@ -203,8 +203,8 @@ def health_check():
 def get_session(uuid):
     """
     Api.get_session method
-    returns: [uuid, users, payload, state, ts]
-    200 -- session created
+    returns: [uuid, users, players, payload, state, round, ts]
+    200 -- session returned
     400 -- wrong arguments
     403 -- wrong authorization
     404 -- session not found
@@ -330,7 +330,7 @@ def get_moves(uuid, rnd):
     if session['state'] != 'Started':
         abort(406)
 
-    if rnd > session['round'] and rnd > 0:
+    if rnd > session['round'] or rnd <= 0:
         abort(406)
 
     session_round = database.get_round(conn, uuid, rnd)
@@ -338,7 +338,9 @@ def get_moves(uuid, rnd):
         abort(500)
 
     move = False
-    if session['ts'] + properties.round_duration < int(time()):
+    if rnd < session['round']:
+        move = True
+    elif session['ts'] + properties.round_duration < int(time()):
         session['round'] = session['round'] + 1
         session['ts'] = int(time())
         database.update_session(conn, session)
@@ -348,9 +350,6 @@ def get_moves(uuid, rnd):
             'user_moves': {},
         })
         conn.commit()
-        move = True
-
-    if len(session_round['user_moves']) == session['players']:
         move = True
 
     session_round['ts'] = session['ts']
