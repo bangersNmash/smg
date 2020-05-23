@@ -245,6 +245,7 @@ def make_move(uuid):
     404 -- session not found
     406 -- session is not active
     406 -- wrong round
+    406 -- round already expired
     500 -- internal error
     """
 
@@ -269,11 +270,24 @@ def make_move(uuid):
     if session_round is None:
         abort(500)
 
+    if session['ts'] + properties.round_duration < int(time()):
+        session['round'] = session['round'] + 1
+        session['ts'] = int(time())
+        database.update_session(conn, session)
+        database.add_round(conn, {
+            'uuid': uuid,
+            'round': session['round'],
+            'user_moves': {},
+        })
+        conn.commit()
+        abort(406)
+
     if AUTH.username() not in session_round['user_moves']:
         session_round['user_moves'][AUTH.username()] = request.json['payload']
         database.update_round(conn, session_round)
         if len(session_round['user_moves']) == session['players']:
             session['round'] = session['round'] + 1
+            session['ts'] = int(time())
             database.update_session(conn, session)
             database.add_round(conn, {
                 'uuid': uuid,
@@ -283,6 +297,57 @@ def make_move(uuid):
         conn.commit()
 
     return "", 200
+
+
+@APP.route('/api/v1/session/<string:uuid>/<int:rnd>', methods=['GET'])
+@AUTH.login_required
+def get_moves(uuid, rnd):
+    """
+    Api.get_moves method
+    returns: [uuid, round, move, user_moves, ts]
+    200 -- moves returned
+    403 -- wrong authorization
+    404 -- session not found
+    406 -- session is not active
+    406 -- wrong round
+    500 -- internal error
+    """
+
+    conn = conn_get()
+    session = database.get_session(conn, uuid)
+    if session is None or AUTH.username() not in session['users']:
+        abort(404)
+
+    if session['state'] != 'Started':
+        abort(406)
+
+    if rnd > session['round'] and rnd > 0:
+        abort(406)
+
+    session_round = database.get_round(conn, uuid, rnd)
+    if session_round is None:
+        abort(500)
+
+    move = False
+    if session['ts'] + properties.round_duration < int(time()):
+        session['round'] = session['round'] + 1
+        session['ts'] = int(time())
+        database.update_session(conn, session)
+        database.add_round(conn, {
+            'uuid': uuid,
+            'round': session['round'],
+            'user_moves': {},
+        })
+        conn.commit()
+        move = True
+
+    if len(session_round['user_moves']) == session['players']:
+        move = True
+
+    session_round['ts'] = session['ts']
+    session_round['move'] = move
+
+    return jsonify(session_round)
 
 
 if __name__ == '__main__':

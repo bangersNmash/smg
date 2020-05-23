@@ -35,6 +35,6 @@ UPDATE_SESSION = """UPDATE sessions SET
                      round=?,
                      ts=?
                      WHERE uuid=?"""
-SELECT_ROUND = "SELECT * FROM rounds WHERE uuid=?, round=?"
+SELECT_ROUND = "SELECT * FROM rounds WHERE uuid=? and round=?"
 INSERT_ROUND = "INSERT INTO rounds VALUES (?,?,?)"
-UPDATE_ROUND = "UPDATE rounds SET user_moves=? WHERE uuid=?, round=?"
+UPDATE_ROUND = "UPDATE rounds SET user_moves=? WHERE uuid=? and round=?"
