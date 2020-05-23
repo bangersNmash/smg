@@ -15,3 +15,4 @@ default_size = 50  # px
 # Server
 db_name = "db/mydatabase.db"
 default_players = 2
+round_duration = 1 * 60

@@ -74,6 +74,13 @@ def conflict(_):
     return make_response(jsonify({'error': 'Conflict'}), 409)
 
 
+@APP.errorhandler(406)
+def not_acceptable(_):
+    """406 status wrapper"""
+
+    return make_response(jsonify({'error': 'Not Acceptable'}), 406)
+
+
 @APP.errorhandler(404)
 def not_found(_):
     """404 status wrapper"""
@@ -141,6 +148,7 @@ def register():
         'password': generate_password_hash(request.json['password']),
     }
     database.add_user(conn, user)
+    conn.commit()
 
     return "", 201
 
@@ -161,15 +169,22 @@ def create_session():
     if not request.json or not 'payload' in request.json:
         abort(400)
 
+    players = properties.default_players
+    if 'players' in request.json['payload'] and isinstance(request.json['payload'], int):
+        players = request.json['payload']
+
     conn = conn_get()
     session = {
         'uuid': str(uuid1()),
         'users': [AUTH.username()],
+        'players': players,
         'payload': request.json['payload'],
         'state': 'New',
+        'round': 0,
         'ts': int(time()),
     }
     database.add_session(conn, session)
+    conn.commit()
 
     return jsonify(session), 201
 
@@ -211,15 +226,137 @@ def get_session(uuid):
         session['users'].append(AUTH.username())
         session['ts'] = int(time())
 
-        if 'players' in session['payload']:
-            if session['payload']['players'] == len(session['users']):
-                session['state'] = 'Started'
-        elif len(session['users']) == properties.default_players:
+        if len(session['users']) == session['players']:
             session['state'] = 'Started'
+            session['round'] = 1
+            database.add_round(conn, {
+                'uuid': uuid,
+                'round': 1,
+                'user_moves': {},
+            })
 
         database.update_session(conn, session)
+        conn.commit()
 
     return jsonify(session)
+
+
+@APP.route('/api/v1/session/<string:uuid>', methods=['PUT'])
+@AUTH.login_required
+def make_move(uuid):
+    """
+    Api.make_move method
+    arguments: [hash, round, payload]
+    returns: empty body
+    200 -- move accepted
+    400 -- wrong arguments
+    403 -- wrong authorization
+    404 -- session not found
+    406 -- session is not active
+    406 -- wrong round
+    406 -- round already expired
+    500 -- internal error
+    """
+
+    if not request.json or \
+            not 'hash' in request.json or \
+            not 'round' in request.json or \
+            not 'payload' in request.json:
+        abort(400)
+
+    conn = conn_get()
+    session = database.get_session(conn, uuid)
+    if session is None or AUTH.username() not in session['users']:
+        abort(404)
+
+    if session['state'] != 'Started':
+        abort(406)
+
+    if request.json['round'] != session['round']:
+        abort(406)
+
+    session_round = database.get_round(conn, uuid, session['round'])
+    if session_round is None:
+        abort(500)
+
+    if session['ts'] + properties.round_duration < int(time()):
+        session['round'] = session['round'] + 1
+        session['ts'] = int(time())
+        database.update_session(conn, session)
+        database.add_round(conn, {
+            'uuid': uuid,
+            'round': session['round'],
+            'user_moves': {},
+        })
+        conn.commit()
+        abort(406)
+
+    if AUTH.username() not in session_round['user_moves']:
+        session_round['user_moves'][AUTH.username()] = request.json['payload']
+        database.update_round(conn, session_round)
+        if len(session_round['user_moves']) == session['players']:
+            session['round'] = session['round'] + 1
+            session['ts'] = int(time())
+            database.update_session(conn, session)
+            database.add_round(conn, {
+                'uuid': uuid,
+                'round': session['round'],
+                'user_moves': {},
+            })
+        conn.commit()
+
+    return "", 200
+
+
+@APP.route('/api/v1/session/<string:uuid>/<int:rnd>', methods=['GET'])
+@AUTH.login_required
+def get_moves(uuid, rnd):
+    """
+    Api.get_moves method
+    returns: [uuid, round, move, user_moves, ts]
+    200 -- moves returned
+    403 -- wrong authorization
+    404 -- session not found
+    406 -- session is not active
+    406 -- wrong round
+    500 -- internal error
+    """
+
+    conn = conn_get()
+    session = database.get_session(conn, uuid)
+    if session is None or AUTH.username() not in session['users']:
+        abort(404)
+
+    if session['state'] != 'Started':
+        abort(406)
+
+    if rnd > session['round'] and rnd > 0:
+        abort(406)
+
+    session_round = database.get_round(conn, uuid, rnd)
+    if session_round is None:
+        abort(500)
+
+    move = False
+    if session['ts'] + properties.round_duration < int(time()):
+        session['round'] = session['round'] + 1
+        session['ts'] = int(time())
+        database.update_session(conn, session)
+        database.add_round(conn, {
+            'uuid': uuid,
+            'round': session['round'],
+            'user_moves': {},
+        })
+        conn.commit()
+        move = True
+
+    if len(session_round['user_moves']) == session['players']:
+        move = True
+
+    session_round['ts'] = session['ts']
+    session_round['move'] = move
+
+    return jsonify(session_round)
 
 
 if __name__ == '__main__':
