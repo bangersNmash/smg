@@ -1,0 +1,48 @@
+---
+- hosts: staging_master
+  become: true
+  tasks:
+    - name: Initialize the cluster
+      shell: kubeadm init --pod-network-cidr=10.244.0.0/16 > cluster_initialized.txt
+
+    - name: Create .kube directory
+      become: true
+      become_user: ubuntu
+      file:
+        path: $HOME/.kube
+        state: directory
+        mode: 0755
+
+    - name: Copy admin.conf to user's kube config
+      copy:
+        src: /etc/kubernetes/admin.conf
+        dest: /home/ubuntu/.kube/config
+        remote_src: yes
+        owner: ubuntu
+
+    - name: Get join command
+      shell: tail -2 cluster_initialized.txt
+      register: join_command
+
+    - name: Print join command
+      debug:
+        var: join_command.stdout
+
+    - name: Save join command to file
+      become: false
+      local_action:
+        module: copy
+        content: "{{ join_command.stdout }}"
+        dest: ./join.sh
+        mode: 0777
+
+    - name: Setup flannel
+      become: true
+      become_user: ubuntu
+      shell: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/2140ac876ef134e0ed5af15c65e414cf26827915/Documentation/kube-flannel.yml
+
+    - name: Install helm
+      snap:
+        name: helm
+        state: present
+        classic: yes

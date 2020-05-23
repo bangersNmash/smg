@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: smg-deploy
+spec:
+  strategy:
+    rollingUpdate:
+      maxSurge: 50%
+      maxUnavailable: 30%
+  replicas: 2
+  selector:
+    matchLabels:
+      app: smg
+  template:
+    metadata:
+      labels:
+        app: smg
+    spec:
+      containers:
+        - name: smg-server
+          imagePullPolicy: Always
+          image: "docker.pkg.github.com/bangersnmash/smg/smg_server:{{ .Values.TAG }}"
+          ports:
+            - containerPort: 5000
+          volumeMounts:
+            - name: db-vol
+              mountPath: /usr/src/server/db
+      imagePullSecrets:
+        - name: docker-secret
+      volumes:
+        - name: db-vol
+          persistentVolumeClaim:
+            claimName: sqlite

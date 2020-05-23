@@ -1,5 +1,18 @@
 .idea/
-mydatabase.db
+
+
+
+# Local database file
+db/mydatabase.db
+
+# Private key files
+deploy/smg.pem
+deploy/token.txt
+
+# Kube join script
+deploy/join.sh
+
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

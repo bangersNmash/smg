@@ -1,0 +1,3 @@
+TARGET_PORT: 30080
+TAG: latest
+VOLUME_ID: vol-0ded477983dc648b4

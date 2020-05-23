@@ -1,0 +1,14 @@
+---
+- name: Delete deployed chart
+  hosts: staging_master
+  tasks:
+    - name: Check if already running
+      shell: /snap/bin/helm list -q -n smg
+      register: helm_list
+
+    - name: Delete if already running
+      when: helm_list.stdout.find("smgserver") != -1
+      shell: /snap/bin/helm delete smgserver -n smg
+
+    - name: Delete namespace
+      shell: kubectl delete namespace smg
