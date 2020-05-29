@@ -7,57 +7,73 @@ Provides data structures and operations representing grid of hexagons.
 from math import sqrt
 
 import properties
+import pygame
 
 
 class Hex:
     """Represents a hexagon"""
-
-    def __init__(self, x, y, size, color=(0, 0, 0)):
-        self.x = x
-        self.y = y
+    def __init__(self, x, y,
+                 size=properties.hex_edge_length,
+                 grid_type=properties.GridType.PLAIN,
+                 object=None):
+        self.x, self.y = x, y
         self.size = size
-        self.color = color
+        self.width, self.height = properties.hex_width, properties.hex_height
+        self.update_grid_type(grid_type)
 
-    def vertices(self):
+        self.object = object
+        self.vertices = self.compute_vertices()
+        self.corner_pos = (self.x - (self.width / 2), self.y - (self.height / 2))
+
+    def update_grid_type(self, grid_type):
+        self.grid_type = grid_type
+        self.texture = pygame.image.load(properties.grid_type2img[self.grid_type])
+        # self.texture = pygame.transform.rotate(self.texture, 60)
+        self.texture = pygame.transform.scale(self.texture, (int(self.width), int(self.height)))
+
+    def compute_vertices(self):
         """Returns list of hexagon's vertices from left one clockwise"""
-        h = self.size * sqrt(3)
-        return [
-            [self.x - self.size, self.y],  # left
-            [self.x - self.size / 2, self.y - h / 2],  # top left
-            [self.x + self.size / 2, self.y - h / 2],  # top right
-            [self.x + self.size, self.y],  # right
-            [self.x + self.size / 2, self.y + h / 2],  # bottom right
-            [self.x - self.size / 2, self.y + h / 2],  # bottom left
-        ]
+        h = self.height
+        w = self.width
+        return {
+            'left': (self.x - w / 2, self.y),
+            'top_left': (self.x - w / 4, self.y - h / 2),
+            'top_right': (self.x +  w / 4, self.y - h / 2),
+            'right': (self.x + w / 2, self.y),
+            'bottom_right': (self.x + w / 4, self.y + h / 2),
+            'bottom_left': (self.x - w / 4, self.y + h / 2)
+        }
 
 
 class Grid:
     """Represents a grid of hexagons"""
-    def __init__(self, width, height, size=properties.default_size):
-        self._size = size
+    def __init__(self, width, height, hex_edge_length=properties.hex_edge_length):
+        self.width, self.height = width, height
+        self._hex_edge_length = hex_edge_length
         self._grid = []
-
-        hex_width, hex_height = size * 2, size * sqrt(3)
+        self.hex_width, self.hex_height = properties.hex_width, properties.hex_height
 
         y = i = 0
         while i < height:
             row = []
             x, j = 0, 0
             while j < width:
-                row.append(Hex(x + hex_width / 2, y + (j % 2 + 1) / 2 * hex_height, size))
-                x += size * 1.5
+                x_coord = x + self.hex_width / 2
+                y_coord = y + (j % 2 + 1) / 2 * self.hex_height
+                row.append(Hex(x_coord, y_coord, hex_edge_length))
+                x += hex_edge_length * 1.5
                 j += 1
             self._grid.append(row)
-            y += hex_height
+            y += self.hex_height
             i += 1
 
     def get_hex(self, row, col):
         """Get hexagon at position (row, col)"""
         return self._grid[row][col]
 
-    def get_size(self):
+    def get_hex_edge_length(self):
         """Get length of hexagon side"""
-        return self._size
+        return self._hex_edge_length
 
     def get_grid(self):
         """Get hexes as bi-dimensional grid"""
@@ -71,6 +87,11 @@ class Grid:
                 hexes.append(elem)
         return hexes
 
+    def get_grid_resolution(self):
+        """Get grid resolution in pixels"""
+        width = self.width * self.hex_width - properties.hex_edge_length / 2
+        height = (properties.grid_height + 0.5) * properties.hex_height
+        return width, height
 
 def hex_to_pixel(row, col, size):
     """Get pixel on surface from position of a hexagon in a grid"""

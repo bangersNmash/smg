@@ -11,6 +11,7 @@ import pygame
 import grid
 import properties
 
+tick_milliseconds = 100
 camera_pos = (0, 0)
 mouse_down_pos = (0, 0)
 
@@ -18,41 +19,45 @@ mouse_down_pos = (0, 0)
 def main():
     """Start game cycle"""
     pygame.init()
+    draw_request_event_type = pygame.USEREVENT
+    pygame.time.set_timer(draw_request_event_type, tick_milliseconds)
     screen = pygame.display.set_mode((properties.window_width, properties.window_height),
                                      pygame.RESIZABLE)
-    surface = pygame.Surface((properties.grid_width * properties.default_size * 2,
-                              (properties.grid_height + 1) * properties.default_size * sqrt(3)))
-    world = grid.Grid(properties.grid_width, properties.grid_height, properties.default_size)
+    world = grid.Grid(properties.grid_width, properties.grid_height, properties.hex_edge_length)
+    surface = pygame.Surface(world.get_grid_resolution())
 
     while True:
-        screen.fill((255, 255, 255))
-
         draw(surface, world)
-
         screen.blit(surface, camera_pos)
-        pygame.display.update()
 
-        action = handle_event(pygame.event.wait())
+        event = pygame.event.wait()
+        action = handle_event(event)
         action(world)
+        if event.type == draw_request_event_type:
+            pygame.display.flip()
 
 
 def draw(surface, world):
     """Draws all game objects on given surface"""
     surface.fill((255, 255, 255))
+
     for h in world.hexes():
-        pygame.draw.polygon(surface, h.color, h.vertices())
-        pygame.draw.aalines(surface, (255, 255, 255), True, h.vertices())
+        # surface.blit(h.texture, h.vertices['top_left'])
+        # pygame.draw.polygon(surface, h.color, h.vertices())
+        surface.blit(h.texture, h.corner_pos)
+        pygame.draw.aalines(surface, (98, 113, 113), True, list(h.vertices.values()))
 
 
 def handle_event(e):
     """Handles user events according to game logic"""
+    # print(e.type, e)
     if e.type == pygame.MOUSEBUTTONDOWN:
         return handle_mouse_button_down(*e.pos)
 
     if e.type == pygame.MOUSEBUTTONUP:
         return handle_mouse_button_up(*e.pos)
 
-    if e.type == pygame.QUIT:
+    if e.type == pygame.QUIT or (hasattr(e, 'key') and e.key == properties.button_keys['esc']):
         return finish
 
     return do_nothing
@@ -72,14 +77,13 @@ def handle_mouse_button_up(x, y):
     def handler(world):
         global camera_pos
         if mouse_down_pos == (x, y):
-            size = world.get_size()
-            hex_pos = grid.pixel_to_hex(x - size - camera_pos[0],
-                                        y - size * sqrt(3) / 2 - camera_pos[1], size)
+            el = world.get_hex_edge_length()
+            hex_pos = grid.pixel_to_hex(x - el - camera_pos[0],
+                                        y - el * sqrt(3) / 2 - camera_pos[1], el)
             print(x, y, hex_pos)
-
-            for h in world.hexes():
-                h.color = (0, 0, 0)
-            world.get_hex(*hex_pos).color = (255, 0, 0)
+            # for h in world.hexes():
+            #     h.color = (0, 0, 0)
+            world.get_hex(*hex_pos).update_grid_type(properties.GridType.FOREST)
         else:
             diff_x, diff_y = x - mouse_down_pos[0], y - mouse_down_pos[1]
             camera_pos = (camera_pos[0] + diff_x, camera_pos[1] + diff_y)
