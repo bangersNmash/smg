@@ -1,104 +1,59 @@
 """
 smg.py -- the game
 ==================
-Core package describing top level game logic.
+Core module describing top level game logic.
 """
-import sys
-from math import sqrt
-
 import pygame
+import random
+import pygame_menu as pgm
 
-import grid
-import properties
+import grid as grid_module
+import character as character_module
+import game_state as game_state_module
+from gui import draw, reset, handle_event
+import properties as pr
 
 tick_milliseconds = 100
-camera_pos = (0, 0)
-mouse_down_pos = (0, 0)
 
-
-def main():
+def game():
     """Start game cycle"""
-    pygame.init()
     draw_request_event_type = pygame.USEREVENT
     pygame.time.set_timer(draw_request_event_type, tick_milliseconds)
-    screen = pygame.display.set_mode((properties.window_width, properties.window_height),
+    screen = pygame.display.set_mode((pr.game_window_width, pr.game_window_height),
                                      pygame.RESIZABLE)
-    world = grid.Grid(properties.grid_width, properties.grid_height, properties.hex_edge_length)
-    surface = pygame.Surface(world.get_grid_resolution())
+    pygame.display.set_caption('So damn good strategy...')
 
-    while True:
-        draw(surface, world)
-        screen.blit(surface, camera_pos)
+    game_state = game_state_module.GameState()
+    game_finished = False
+
+    while not game_finished:
+        draw(screen, game_state)
 
         event = pygame.event.wait()
-        action = handle_event(event)
-        action(world)
         if event.type == draw_request_event_type:
             pygame.display.flip()
-
-
-def draw(surface, world):
-    """Draws all game objects on given surface"""
-    surface.fill((255, 255, 255))
-
-    for h in world.hexes():
-        # surface.blit(h.texture, h.vertices['top_left'])
-        # pygame.draw.polygon(surface, h.color, h.vertices())
-        surface.blit(h.texture, h.corner_pos)
-        pygame.draw.aalines(surface, (98, 113, 113), True, list(h.vertices.values()))
-
-
-def handle_event(e):
-    """Handles user events according to game logic"""
-    # print(e.type, e)
-    if e.type == pygame.MOUSEBUTTONDOWN:
-        return handle_mouse_button_down(*e.pos)
-
-    if e.type == pygame.MOUSEBUTTONUP:
-        return handle_mouse_button_up(*e.pos)
-
-    if e.type == pygame.QUIT or (hasattr(e, 'key') and e.key == properties.button_keys['esc']):
-        return finish
-
-    return do_nothing
-
-
-def handle_mouse_button_down(x, y):
-    """Handles event when user click on point (x, y) according to game logic"""
-    def handler(_):
-        global mouse_down_pos
-        mouse_down_pos = (x, y)
-
-    return handler
-
-
-def handle_mouse_button_up(x, y):
-    """Handles event when user releases mouse button on point (x, y) according to game logic"""
-    def handler(world):
-        global camera_pos
-        if mouse_down_pos == (x, y):
-            el = world.get_hex_edge_length()
-            hex_pos = grid.pixel_to_hex(x - el - camera_pos[0],
-                                        y - el * sqrt(3) / 2 - camera_pos[1], el)
-            print(x, y, hex_pos)
-            # for h in world.hexes():
-            #     h.color = (0, 0, 0)
-            world.get_hex(*hex_pos).update_grid_type(properties.GridType.FOREST)
         else:
-            diff_x, diff_y = x - mouse_down_pos[0], y - mouse_down_pos[1]
-            camera_pos = (camera_pos[0] + diff_x, camera_pos[1] + diff_y)
+            game_finished = game_state.update(event)
+    print('Game finished!')
 
-    return handler
+def menu():
+    menu_surface = pygame.display.set_mode((pr.menu_window_width, pr.menu_window_height),
+                                           flags=pygame.RESIZABLE)
 
+    menu = pgm.Menu(pr.menu_window_width, pr.menu_window_height, 'Welcome',
+             theme=pgm.themes.THEME_SOLARIZED,
+             column_force_fit_text=True)
 
-def do_nothing(_):
-    """Handles event by doing nothing"""
+    menu.add_text_input('Name: ', default='<type your nickname here>')
+    menu.add_button('Play Random Game', reset(menu,game))
+    menu.add_button('Create Game', reset(menu,game))
+    menu.add_button('Join Game', reset(menu,game))
+    menu.add_button('Quit', pgm.events.EXIT, font_name='ubuntu')
+    menu.mainloop(menu_surface)
 
-
-def finish(_):
-    """Handles event by exiting the game"""
-    sys.exit(0)
-
+def main():
+    pygame.init()
+    menu()
 
 if __name__ == '__main__':
     main()
