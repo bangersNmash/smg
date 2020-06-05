@@ -10,7 +10,7 @@ import pygame_menu as pgm
 import grid as grid_module
 import character as character_module
 import game_state as game_state_module
-from gui import draw, reset, handle_event
+from gui import draw, reset
 import properties as pr
 
 tick_milliseconds = 100
@@ -27,9 +27,11 @@ def game():
     game_finished = False
 
     while not game_finished:
-        draw(screen, game_state)
+        # draw(screen, game_state)
+        game_state.draw(screen)
 
         event = pygame.event.wait()
+        # print(event)
         if event.type == draw_request_event_type:
             pygame.display.flip()
         else:

@@ -1,13 +1,11 @@
-import sys
-from math import sqrt
-
 import pygame
 
 import properties as pr
-import grid as grid_module
 
-camera_pos = (0, 0)
-mouse_down_pos = (0, 0)
+class SpriteGroup(pygame.sprite.Group):
+    def draw(self, surface):
+        for sprite in self.sprites():
+            sprite.draw(surface)
 
 class Button(pygame.sprite.Sprite):
     def __init__(self, game_state, pos, text, action):
@@ -15,17 +13,68 @@ class Button(pygame.sprite.Sprite):
         self.game_state = game_state
         self.pos = pos
         self.action = action
-        self.image = pygame.Surface((120, 30))
-        self.rect = self.image.get_rect(topleft=pos)
-        self.image.fill(pr.DARK_GREEN_RGB)
         font = pygame.font.SysFont("Calibri", 24)
         self.text = font.render(text, True, pr.WHITE_RGB)
-        self.image.blit(self.text, (5, 5))
+        self.width, self.height = self.text.get_size()
+        self.width, self.height = self.width + 10, self.height + 10
+
+        self.text_rect = self.text.get_rect(size=self.text.get_size(),
+                                            center=(self.width // 2, self.height // 2))
+        self.image = pygame.Surface((self.width, self.height))
+        self.rect = self.image.get_rect(topleft=pos)
+
+        self.image.fill(pr.DARK_GREEN_RGB)
+        self.image.blit(self.text, self.text_rect)
 
     def update(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN:
             if self.rect.collidepoint(event.pos):
                 self.game_state.game_finished = True
+
+    def draw(self, screen):
+        screen.blit(self.image, self.rect)
+
+class InfoWidget(pygame.sprite.Sprite):
+    def __init__(self, game_state, pos, size, action):
+        super().__init__(game_state.infowidget_sprites)
+        self.game_state = game_state
+        self.pos = pos
+        self.action = action
+        self.width, self.height = size
+        self.image = pygame.Surface((self.width, self.height))
+        self.rect = self.image.get_rect(topleft=pos)
+
+    def fill_widget(self):
+        '''Set value for `self.image` according to the widget purpose'''
+        self.image.fill(pr.DARK_GREEN_RGB)
+    def update(self):
+        self.fill_widget()
+    def draw(self, screen):
+        screen.blit(self.image, self.rect)
+
+class HexInfoWidget(InfoWidget):
+    def fill_widget(self):
+        observed_hex = self.game_state.grid.observed_hex
+        font = pygame.font.SysFont("Calibri", 20)
+        self.image.fill(pr.WHITE_RGB)
+        if observed_hex is not None:
+            hex_type = observed_hex.hex_type
+            texture = observed_hex.texture
+            texture_rect = texture.get_rect(size=texture.get_size(),
+                                            center=(self.width // 2, self.height // 3))
+            self.image.blit(texture, texture_rect)
+            text = font.render(str(hex_type), True, pr.BLACK_RGB)
+            text_rect = text.get_rect(size=text.get_size(),
+                                      center=(self.width // 2, 3 * self.height // 4))
+            self.image.blit(text, text_rect)
+        else:
+            text = font.render("Nothing to observe", True, pr.BLACK_RGB)
+            text_rect = text.get_rect(size=text.get_size(),
+                                      center=(self.width // 2, self.height // 2))
+            self.image.blit(text, text_rect)
+    def update(self):
+        self.fill_widget()
+
 
 def reset(menu, func):
     """Serves as a kind of decorator for functions connected with menu buttons,
@@ -44,8 +93,7 @@ def draw(screen, game_state):
     grid_surface = grid.surface
 
     for h in grid.hexes():
-        # grid_surface.blit(h.texture, h.vertices['top_left'])
-        if h.grid_type == pr.GridType.PLAIN:
+        if h.hex_type == pr.HexType.PLAIN:
             pygame.draw.polygon(grid_surface, pr.WHITE_RGB, list(h.vertices.values()))
         else:
             grid_surface.blit(h.texture, h.hex_texture_corner_pos)
@@ -53,54 +101,6 @@ def draw(screen, game_state):
             grid_surface.blit(h.object.texture, h.object_texture_corner_pos)
         pygame.draw.aalines(grid_surface, pr.DARK_GREEN_RGB, True, list(h.vertices.values()))
 
-    screen.blit(grid_surface, grid_surface.get_rect())
+    screen.blit(grid_surface, grid_surface.get_rect(center=(pr.game_window_width // 2,
+                                                            pr.game_window_height // 2)))
     game_state.button_sprites.draw(screen)
-
-
-def handle_event(e):
-    """Handles user events according to game logic"""
-    # print(e.type, e)
-    finished = False
-    if e.type == pygame.MOUSEBUTTONDOWN:
-        return handle_mouse_button_down(*e.pos), finished
-
-    if e.type == pygame.MOUSEBUTTONUP:
-        return handle_mouse_button_up(*e.pos), finished
-
-    if e.type == pygame.QUIT or (hasattr(e, 'key') and e.key == pr.button_keys['esc']):
-        finished = True
-
-    return do_nothing, finished
-
-
-def handle_mouse_button_down(x, y):
-    """Handles event when user click on point (x, y) according to game logic"""
-    def handler(_):
-        global mouse_down_pos
-        mouse_down_pos = (x, y)
-
-    return handler
-
-
-def handle_mouse_button_up(x, y):
-    """Handles event when user releases mouse button on point (x, y) according to game logic"""
-    def handler(grid):
-        global camera_pos
-        if mouse_down_pos == (x, y):
-            el = grid.get_hex_edge_length()
-            hex_pos = grid_module.pixel_to_hex(x - el - camera_pos[0],
-                                        y - el * sqrt(3) / 2 - camera_pos[1], el)
-            print(x, y, hex_pos)
-            hex = grid.get_hex(*hex_pos)
-            if hex is not None:
-                hex.update_grid_type(pr.GridType.FOREST)
-        else:
-            diff_x, diff_y = x - mouse_down_pos[0], y - mouse_down_pos[1]
-            camera_pos = (camera_pos[0] + diff_x, camera_pos[1] + diff_y)
-
-    return handler
-
-
-def do_nothing(_):
-    """Handles event by doing nothing"""
-    pass

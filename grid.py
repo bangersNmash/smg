@@ -5,32 +5,31 @@ Provides data structures and operations representing grid of hexagons.
 """
 
 from math import sqrt
-
-import properties as pr
+import random
 import pygame
 
-from gui import camera_pos
+import properties as pr
 
 
 class Hex:
     """Represents a hexagon"""
     def __init__(self, x, y,
                  size=pr.hex_edge_length,
-                 grid_type=pr.GridType.PLAIN,
+                 hex_type=pr.HexType.PLAIN,
                  object=None):
         self.x, self.y = x, y
         self.size = size
         self.width, self.height = pr.hex_width, pr.hex_height
-        self.update_grid_type(grid_type)
+        self.update_hex_type(hex_type)
 
         self.object = object
         self.vertices = self.compute_vertices()
         self.hex_texture_corner_pos = (self.x - (self.width / 2), self.y - (self.height / 2))
         self.object_texture_corner_pos = (self.x - (self.width / 4), self.y - (self.height / 4))
 
-    def update_grid_type(self, grid_type):
-        self.grid_type = grid_type
-        self.texture = pygame.image.load(pr.grid_type2img[self.grid_type])
+    def update_hex_type(self, hex_type):
+        self.hex_type = hex_type
+        self.texture = pygame.image.load(pr.grid_type2img[self.hex_type])
         # self.texture = pygame.transform.rotate(self.texture, 60)
         self.texture = pygame.transform.scale(self.texture, (int(self.width), int(self.height)))
 
@@ -50,15 +49,20 @@ class Hex:
 
 class Grid(pygame.sprite.Sprite):
     """Represents a grid of hexagons"""
-    def __init__(self, sprite_group, width, height, hex_edge_length=pr.hex_edge_length, objects=None):
+    def __init__(self, sprite_group, bg_surface_data, width_in_hexes, height_in_hexes, hex_edge_length=pr.hex_edge_length, objects=None):
         super().__init__(sprite_group)
-        self.width, self.height = width, height
+        self.width_in_hexes, self.height_in_hexes = width_in_hexes, height_in_hexes
         self._hex_edge_length = hex_edge_length
         self._grid = []
         self.hex_width, self.hex_height = pr.hex_width, pr.hex_height
+        self.width, self.hex = self.get_grid_resolution()
         self.objects = objects
 
+        self.bg_surface, self.bg_surface_rect = bg_surface_data
+        self.shift_x, self.shift_y = self.bg_surface_rect.topleft
+
         self.surface = pygame.Surface(self.get_grid_resolution())
+        self.surface_rect = self.surface.get_rect(topleft=(0,0))
         self.surface.fill(pr.WHITE_RGB)
 
         obj_with_positions = []
@@ -69,30 +73,38 @@ class Grid(pygame.sprite.Sprite):
 
         obj_i = 0
         y = i = 0
-        while i < height:
+        while i < height_in_hexes:
             row = []
             x, j = 0, 0
-            while j < width:
+            while j < width_in_hexes:
                 x_coord = x + self.hex_width / 2
                 y_coord = y + (j % 2 + 1) / 2 * self.hex_height
+                gts = pr.HexType.type_names()
+                gt_i = random.randrange(0, len(gts))
+
                 if obj_i < len(obj_with_positions) and (i,j) == obj_with_positions[obj_i][0]:
                     row.append(Hex(x_coord, y_coord, hex_edge_length,
+                                   hex_type=pr.HexType[gts[gt_i]],
                                    object=obj_with_positions[obj_i][1]))
                     print('Obj appended!')
                     obj_i += 1
                 else:
-                    row.append(Hex(x_coord, y_coord, hex_edge_length, object=None))
+                    row.append(Hex(x_coord, y_coord, hex_edge_length,
+                                   hex_type=pr.HexType[gts[gt_i]],
+                                   object=None))
                 x += hex_edge_length * 1.5
                 j += 1
             self._grid.append(row)
             y += self.hex_height
             i += 1
 
+        self.observed_hex = None
+
     def get_hex(self, row, col):
         """Get hexagon at position (row, col)"""
-        if row >= self.height or row < 0:
+        if row >= self.height_in_hexes or row < 0:
             return None
-        if col >= self.width or col < 0:
+        if col >= self.width_in_hexes or col < 0:
             return None
         return self._grid[row][col]
 
@@ -114,21 +126,45 @@ class Grid(pygame.sprite.Sprite):
 
     def get_grid_resolution(self):
         """Get grid resolution in pixels"""
-        width = self.width * self.hex_width - pr.hex_edge_length / 2
+        width = self.width_in_hexes * self.hex_width - pr.hex_edge_length / 2
         height = (pr.grid_height + 0.5) * pr.hex_height
         return width, height
 
     def update(self, event):
-        global camera_pos
         if event.type == pygame.MOUSEBUTTONUP:
             x, y = event.pos
+            x, y = x - self.shift_x, y - self.shift_y
             el = self.get_hex_edge_length()
-            hex_pos = pixel_to_hex(x - el - camera_pos[0],
-                                y - el * sqrt(3) / 2 - camera_pos[1], el)
-            print(x, y, hex_pos)
+            hex_pos = pixel_to_hex(x - el,
+                                y - el * sqrt(3) / 2, el)
             hex = self.get_hex(*hex_pos)
             if hex is not None:
-                hex.update_grid_type(pr.GridType.FOREST)
+                print(x, y, hex_pos)
+                self.observed_hex = hex
+            else:
+                self.observed_hex = None
+        elif event.type == pygame.MOUSEMOTION and event.buttons[0] == 1 and\
+                self.surface_rect.collidepoint(event.pos):
+            dx, dy = event.rel
+            self.shift_x += dx
+            self.shift_y += dy
+            self.surface_rect.move_ip(dx,dy)
+        else:
+            pass
+
+    def draw(self, screen):
+        for h in self.hexes():
+            self.surface.blit(h.texture, h.hex_texture_corner_pos)
+            if h.object is not None:
+                self.surface.blit(h.object.texture, h.object_texture_corner_pos)
+            pygame.draw.lines(self.surface, pr.DARK_GREEN_RGB, True, list(h.vertices.values()))
+        self.bg_surface.blit(self.surface, self.surface_rect)
+        w, h = self.bg_surface.get_size()
+        pygame.draw.lines(self.bg_surface, pr.DARK_GREEN_RGB, True,
+                          points=[(0, h), (0, 0), (w,0), (w,h)],
+                          width=10)
+        screen.blit(self.bg_surface, self.bg_surface_rect)
+
 
 def hex_to_pixel(row, col, hex_edge_length):
     """Get pixel on surface from position of a hexagon in a grid"""

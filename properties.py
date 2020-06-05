@@ -5,23 +5,30 @@ from enum import Enum, auto
 from math import sqrt
 
 # Grid parameters
-grid_width = 6  # hex
-grid_height = 6  # hex
-class GridType(Enum):
+grid_width = 5  # hex
+grid_height = 5  # hex
+class HexType(Enum):
     HILL = 0
     WATER_OBJECT = 1
     FOREST = 2
     PLAIN = 3
 
+    def __str__(self):
+        return f"{self.name} hex"
+
+    @staticmethod
+    def type_names():
+        return ['HILL', 'WATER_OBJECT', 'FOREST', 'PLAIN']
+
 grid_type2img = {
-    GridType.HILL: './textures/blank_hex.png',
-    GridType.WATER_OBJECT: './textures/blank_hex.png',
-    GridType.FOREST: './textures/grass_forest_2.png',
-    GridType.PLAIN: './textures/blank_hex.png'
+    HexType.HILL: './textures/hexes/hill.png',
+    HexType.WATER_OBJECT: './textures/hexes/water.png',
+    HexType.FOREST: './textures/hexes/forest.png',
+    HexType.PLAIN: './textures/hexes/plain.png'
 }
 
 # Hex parameters
-hex_edge_length = 50  # px
+hex_edge_length = 40  # px
 hex_width = hex_edge_length * 2 # px
 hex_height = hex_edge_length * sqrt(3) # px
 
@@ -41,9 +48,9 @@ class CharacterType(Enum):
         return ['WIZARD', 'TOUGH', 'ARCHER']
 
 character_type2img= {
-    CharacterType.WIZARD: './textures/elephant.png',
-    CharacterType.TOUGH: './textures/panda.png',
-    CharacterType.ARCHER: './textures/penguin.png',
+    CharacterType.WIZARD: './textures/characters/elephant.png',
+    CharacterType.TOUGH: './textures/characters/panda.png',
+    CharacterType.ARCHER: './textures/characters/penguin.png',
 }
 
 
@@ -55,7 +62,8 @@ button_keys = {
 # Colors
 BLACK_RGB = (0,0,0)
 WHITE_RGB = (255,255,255)
-DARK_GREEN_RGB = (98, 113, 113)
+RED_RGB = (255,0,0)
+DARK_GREEN_RGB = (98, 150, 113)
 
 # Server parameters
 db_name = "db/mydatabase.db"
