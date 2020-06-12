@@ -1,7 +1,7 @@
 """
 properties.py -- external configuration
 """
-from enum import Enum, auto
+from enum import Enum, IntEnum, auto
 from math import sqrt
 
 # Grid parameters
@@ -28,9 +28,9 @@ grid_type2img = {
 }
 
 # Hex parameters
-hex_edge_length = 40  # px
-hex_width = hex_edge_length * 2 # px
-hex_height = hex_edge_length * sqrt(3) # px
+hex_edge_length = 30  # px
+hex_width = int(hex_edge_length * 2) # px
+hex_height = int(hex_edge_length * sqrt(3)) # px
 
 # Window parameters
 game_window_width = 800  # px
@@ -43,6 +43,9 @@ class CharacterType(Enum):
     WIZARD = 0
     TOUGH = 1
     ARCHER = 2
+
+    def __str__(self):
+        return f"{self.name}"
     @staticmethod
     def type_names():
         return ['WIZARD', 'TOUGH', 'ARCHER']
@@ -54,16 +57,22 @@ character_type2img= {
 }
 
 
-# Keyboard button keys defined inside pygame
+# Keyboard/Mouse button parameters
 button_keys = {
     'esc': 27,
 }
+class MouseButton(IntEnum):
+    LEFT = 1
+    MIDDLE = 2
+    RIGHT = 3
 
 # Colors
 BLACK_RGB = (0,0,0)
+GREY_RGB = (128,128,128)
 WHITE_RGB = (255,255,255)
 RED_RGB = (255,0,0)
 DARK_GREEN_RGB = (98, 150, 113)
+DARK_BROWN_RGB = (99, 66, 33)
 
 # Server parameters
 db_name = "db/mydatabase.db"

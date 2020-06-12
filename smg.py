@@ -10,7 +10,7 @@ import pygame_menu as pgm
 import grid as grid_module
 import character as character_module
 import game_state as game_state_module
-from gui import draw, reset
+from gui import reset
 import properties as pr
 
 tick_milliseconds = 100
@@ -27,7 +27,6 @@ def game():
     game_finished = False
 
     while not game_finished:
-        # draw(screen, game_state)
         game_state.draw(screen)
 
         event = pygame.event.wait()
@@ -50,7 +49,7 @@ def menu():
     menu.add_button('Play Random Game', reset(menu,game))
     menu.add_button('Create Game', reset(menu,game))
     menu.add_button('Join Game', reset(menu,game))
-    menu.add_button('Quit', pgm.events.EXIT, font_name='ubuntu')
+    menu.add_button('Quit', pgm.events.EXIT)
     menu.mainloop(menu_surface)
 
 def main():

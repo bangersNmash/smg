@@ -7,6 +7,7 @@ Provides data structures and operations representing grid of hexagons.
 from math import sqrt
 import random
 import pygame
+from gui import frame_image
 
 import properties as pr
 
@@ -131,7 +132,7 @@ class Grid(pygame.sprite.Sprite):
         return width, height
 
     def update(self, event):
-        if event.type == pygame.MOUSEBUTTONUP:
+        if event.type == pygame.MOUSEBUTTONUP and event.button == pr.MouseButton.RIGHT:
             x, y = event.pos
             x, y = x - self.shift_x, y - self.shift_y
             el = self.get_hex_edge_length()
@@ -143,8 +144,8 @@ class Grid(pygame.sprite.Sprite):
                 self.observed_hex = hex
             else:
                 self.observed_hex = None
-        elif event.type == pygame.MOUSEMOTION and event.buttons[0] == 1 and\
-                self.surface_rect.collidepoint(event.pos):
+        elif event.type == pygame.MOUSEMOTION and event.buttons[0] == pr.MouseButton.LEFT and\
+                self.bg_surface_rect.collidepoint(event.pos):
             dx, dy = event.rel
             self.shift_x += dx
             self.shift_y += dy
@@ -159,10 +160,7 @@ class Grid(pygame.sprite.Sprite):
                 self.surface.blit(h.object.texture, h.object_texture_corner_pos)
             pygame.draw.lines(self.surface, pr.DARK_GREEN_RGB, True, list(h.vertices.values()))
         self.bg_surface.blit(self.surface, self.surface_rect)
-        w, h = self.bg_surface.get_size()
-        pygame.draw.lines(self.bg_surface, pr.DARK_GREEN_RGB, True,
-                          points=[(0, h), (0, 0), (w,0), (w,h)],
-                          width=10)
+        frame_image(self.bg_surface)
         screen.blit(self.bg_surface, self.bg_surface_rect)
 
 
