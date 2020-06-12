@@ -2,10 +2,12 @@ import pygame
 
 import properties as pr
 
+
 class SpriteGroup(pygame.sprite.Group):
     def draw(self, surface):
         for sprite in self.sprites():
             sprite.draw(surface)
+
 
 class Button(pygame.sprite.Sprite):
     def __init__(self, game_state, pos, text, action):
@@ -34,10 +36,12 @@ class Button(pygame.sprite.Sprite):
     def draw(self, screen):
         screen.blit(self.image, self.rect)
 
+
 def finish_game_action(button, event):
     if event.type == pygame.MOUSEBUTTONDOWN:
         if button.rect.collidepoint(event.pos):
             button.game_state.game_finished = True
+
 
 def end_turn_action(button, event):
     if event.type == pygame.MOUSEBUTTONDOWN:
@@ -57,11 +61,14 @@ class InfoWidget(pygame.sprite.Sprite):
         # frame_image(self.image)
         self.rect = self.image.get_rect(topleft=pos)
         self.action = action
+
     def update(self):
         if self.action is not None:
             self.action(self)
+
     def draw(self, screen):
         screen.blit(self.image, self.rect)
+
 
 def update_hex_infowidget(infowidget):
     observed_hex = infowidget.game_state.grid.observed_hex
@@ -92,6 +99,7 @@ def update_hex_infowidget(infowidget):
                                   center=(infowidget.width // 2, infowidget.height // 2))
         infowidget.image.blit(text, text_rect)
 
+
 def update_initiative_order_infowidget(infowidget):
     characters = infowidget.game_state.get_character_initiative_order()
     font = pygame.font.SysFont("Calibri", 20)
@@ -99,23 +107,24 @@ def update_initiative_order_infowidget(infowidget):
     # w,h = characters[0].width, characters[0].height
     h_offset = 30
 
-    for t,cp in [("Initiative order", (infowidget.width // 2, 10)),
-                 ("(Character, Hex pos)", (infowidget.width // 2, 20))]:
+    for t, cp in [("Initiative order", (infowidget.width // 2, 10)),
+                  ("(Character, Hex pos)", (infowidget.width // 2, 20))]:
         text = font.render(t, True, pr.BLACK_RGB)
         text_rect = text.get_rect(size=text.get_size(),
                                   center=cp)
         infowidget.image.blit(text, text_rect)
 
     h = (infowidget.height - h_offset) // len(characters)
-    for i,c in enumerate(characters, start=1):
+    for i, c in enumerate(characters, start=1):
         texture = pygame.transform.scale(c.texture.copy(), (c.width, h))
         texture_rect = texture.get_rect(size=texture.get_size(),
-                                        center=(1 * infowidget.width // 3, h_offset + i*h - h // 2))
+                                        center=(1 * infowidget.width // 3, h_offset + i * h - h // 2))
         infowidget.image.blit(texture, texture_rect)
         text = font.render(str(c.grid_position), True, pr.BLACK_RGB)
         text_rect = text.get_rect(size=text.get_size(),
                                   center=(2 * infowidget.width // 3, h_offset + i * h - h // 2))
         infowidget.image.blit(text, text_rect)
+
 
 def frame_image(image):
     w, h = image.get_size()
@@ -127,9 +136,11 @@ def frame_image(image):
 def reset(menu, func):
     """Serves as a kind of decorator for functions connected with menu buttons,
     but it's not the real decorator because it takes dynamical menu argument as an input"""
+
     def new_func(*args, **kwargs):
         res = func(*args, **kwargs)
         menu.full_reset()
         print('Reset happened!')
         return res
+
     return new_func

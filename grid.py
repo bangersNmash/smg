@@ -14,6 +14,7 @@ import properties as pr
 
 class Hex:
     """Represents a hexagon"""
+
     def __init__(self, x, y,
                  size=pr.hex_edge_length,
                  hex_type=pr.HexType.PLAIN,
@@ -41,7 +42,7 @@ class Hex:
         return {
             'left': (self.x - w / 2, self.y),
             'top_left': (self.x - w / 4, self.y - h / 2),
-            'top_right': (self.x +  w / 4, self.y - h / 2),
+            'top_right': (self.x + w / 4, self.y - h / 2),
             'right': (self.x + w / 2, self.y),
             'bottom_right': (self.x + w / 4, self.y + h / 2),
             'bottom_left': (self.x - w / 4, self.y + h / 2)
@@ -50,7 +51,9 @@ class Hex:
 
 class Grid(pygame.sprite.Sprite):
     """Represents a grid of hexagons"""
-    def __init__(self, sprite_group, bg_surface_data, width_in_hexes, height_in_hexes, hex_edge_length=pr.hex_edge_length, objects=None):
+
+    def __init__(self, sprite_group, bg_surface_data, width_in_hexes, height_in_hexes,
+                 hex_edge_length=pr.hex_edge_length, objects=None):
         super().__init__(sprite_group)
         self.width_in_hexes, self.height_in_hexes = width_in_hexes, height_in_hexes
         self._hex_edge_length = hex_edge_length
@@ -63,7 +66,7 @@ class Grid(pygame.sprite.Sprite):
         self.shift_x, self.shift_y = self.bg_surface_rect.topleft
 
         self.surface = pygame.Surface(self.get_grid_resolution())
-        self.surface_rect = self.surface.get_rect(topleft=(0,0))
+        self.surface_rect = self.surface.get_rect(topleft=(0, 0))
         self.surface.fill(pr.WHITE_RGB)
 
         obj_with_positions = []
@@ -83,7 +86,7 @@ class Grid(pygame.sprite.Sprite):
                 gts = pr.HexType.type_names()
                 gt_i = random.randrange(0, len(gts))
 
-                if obj_i < len(obj_with_positions) and (i,j) == obj_with_positions[obj_i][0]:
+                if obj_i < len(obj_with_positions) and (i, j) == obj_with_positions[obj_i][0]:
                     row.append(Hex(x_coord, y_coord, hex_edge_length,
                                    hex_type=pr.HexType[gts[gt_i]],
                                    object=obj_with_positions[obj_i][1]))
@@ -137,19 +140,19 @@ class Grid(pygame.sprite.Sprite):
             x, y = x - self.shift_x, y - self.shift_y
             el = self.get_hex_edge_length()
             hex_pos = pixel_to_hex(x - el,
-                                y - el * sqrt(3) / 2, el)
+                                   y - el * sqrt(3) / 2, el)
             hex = self.get_hex(*hex_pos)
             if hex is not None:
                 print(x, y, hex_pos)
                 self.observed_hex = hex
             else:
                 self.observed_hex = None
-        elif event.type == pygame.MOUSEMOTION and event.buttons[0] == pr.MouseButton.LEFT and\
+        elif event.type == pygame.MOUSEMOTION and event.buttons[0] == pr.MouseButton.LEFT and \
                 self.bg_surface_rect.collidepoint(event.pos):
             dx, dy = event.rel
             self.shift_x += dx
             self.shift_y += dy
-            self.surface_rect.move_ip(dx,dy)
+            self.surface_rect.move_ip(dx, dy)
         else:
             pass
 

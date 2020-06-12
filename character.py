@@ -7,7 +7,10 @@ Module provides representation for the game character
 import properties as pr
 import pygame as pg
 
+
 class Character(pg.sprite.Sprite):
+    """Represents game character"""
+
     def __init__(self, sprite_group, grid_position, character_type):
         super().__init__(sprite_group)
         self.width = pr.hex_width // 2

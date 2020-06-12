@@ -15,6 +15,7 @@ import properties as pr
 
 tick_milliseconds = 100
 
+
 def game():
     """Start game cycle"""
     draw_request_event_type = pygame.USEREVENT
@@ -37,24 +38,27 @@ def game():
             game_finished = game_state.update(event)
     print('Game finished!')
 
+
 def menu():
     menu_surface = pygame.display.set_mode((pr.menu_window_width, pr.menu_window_height),
                                            flags=pygame.RESIZABLE)
 
     menu = pgm.Menu(pr.menu_window_width, pr.menu_window_height, 'Welcome',
-             theme=pgm.themes.THEME_SOLARIZED,
-             column_force_fit_text=True)
+                    theme=pgm.themes.THEME_SOLARIZED,
+                    column_force_fit_text=True)
 
     menu.add_text_input('Name: ', default='<type your nickname here>')
-    menu.add_button('Play Random Game', reset(menu,game))
-    menu.add_button('Create Game', reset(menu,game))
-    menu.add_button('Join Game', reset(menu,game))
+    menu.add_button('Play Random Game', reset(menu, game))
+    menu.add_button('Create Game', reset(menu, game))
+    menu.add_button('Join Game', reset(menu, game))
     menu.add_button('Quit', pgm.events.EXIT)
     menu.mainloop(menu_surface)
+
 
 def main():
     pygame.init()
     menu()
+
 
 if __name__ == '__main__':
     main()
