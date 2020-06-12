@@ -8,37 +8,37 @@ from grid import _cube_to_axial, pixel_to_hex, _axial_to_cube, _axial_hex_round,
 
 def test_hex_to_pixel():
     """Tests grid.hex_to_pixel on fixed random hexes"""
-    size = 10
-    h = size * sqrt(3)
+    hex_edge_length = 10
+    h = hex_edge_length * sqrt(3)
 
-    x, y = hex_to_pixel(0, 0, size)
+    x, y = hex_to_pixel(0, 0, hex_edge_length)
     assert x == 0 and y == 0
 
-    x, y = hex_to_pixel(0, 1, size)
-    assert x == size * 1.5 and y == h / 2
+    x, y = hex_to_pixel(0, 1, hex_edge_length)
+    assert x == hex_edge_length * 1.5 and y == h / 2
 
-    x, y = hex_to_pixel(0, 2, size)
-    assert x == size * 3 and y == 0
+    x, y = hex_to_pixel(0, 2, hex_edge_length)
+    assert x == hex_edge_length * 3 and y == 0
 
 
 def test_pixel_to_hex():
     """Tests grid.pixel_to_hex on fixed random pixels"""
-    size = 10  # px
-    w = 2 * size
+    hex_edge_length = 10  # px
+    w = 2 * hex_edge_length
 
-    row, col = pixel_to_hex(0, 0, size)
+    row, col = pixel_to_hex(0, 0, hex_edge_length)
     assert row == 0 and col == 0
 
-    row, col = pixel_to_hex(size, 0, size)
+    row, col = pixel_to_hex(hex_edge_length, 0, hex_edge_length)
     assert row == 0 and col == 0
 
-    row, col = pixel_to_hex(w + 1, size + 1, size)
+    row, col = pixel_to_hex(w + 1, hex_edge_length + 1, hex_edge_length)
     assert row == 0 and col == 1
 
-    row, col = pixel_to_hex(w * 1.5 + 1, 0, size)
+    row, col = pixel_to_hex(w * 1.5 + 1, 0, hex_edge_length)
     assert row == 0 and col == 2
 
-    # row, col = pixel_to_hex(w * 1.5 + 1, 2 * size, size)
+    # row, col = pixel_to_hex(w * 1.5 + 1, 2 * hex_edge_length, hex_edge_length)
     # assert row == 0 and col == 1
 
 
